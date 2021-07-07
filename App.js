@@ -1,10 +1,17 @@
-import React, {useState} from 'react';
-import { KeyboardAvoidingView, StyleSheet, Text, View, TextInput, TouchableOpacity, Keyboard, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import 'react-native-gesture-handler';
+
+import { NavigationContainer } from '@react-navigation/native';
+import { Button, KeyboardAvoidingView, StyleSheet, Text, View, TextInput, TouchableOpacity, Keyboard, ScrollView } from 'react-native';
 import Task from './components/Task';
+import { createStackNavigator } from '@react-navigation/stack';
+
+const Stack = createStackNavigator();
 
 export default function App() {
   const [task, setTask] = useState();
   const [taskItems, setTaskItems] = useState([]);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   const handleAddTask = () => {
     Keyboard.dismiss();
@@ -12,54 +19,90 @@ export default function App() {
     setTask(null);
   }
 
-  const completeTask = (index) => {
-    let itemsCopy = [...taskItems];
-    itemsCopy.splice(index, 1);
-    setTaskItems(itemsCopy)
+  const completeTask = (index, navigation) => {
+    setSelectedTask({ index: index, text: taskItems[index] });
+    navigation.navigate('Todo', { name: 'Jane' })
+    // let itemsCopy = [...taskItems];
+    // itemsCopy.splice(index, 1);
+    // setTaskItems(itemsCopy)
   }
 
-  return (
-    <View style={styles.container}>
-     
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1
-        }}
-        keyboardShouldPersistTaps='handled'
-      >
 
-     
-      <View style={styles.tasksWrapper}>
-        <Text style={styles.sectionTitle}>ToDo List</Text>
-        <View style={styles.items}>
-        
-          {
-            taskItems.map((item, index) => {
-              return (
-                <TouchableOpacity key={index}  onPress={() => completeTask(index)}>
-                  <Task text={item} /> 
-                </TouchableOpacity>
-              )
-            })
-          }
+  const TodoScreen = ({ navigation }) => {
+    return (
+      <View style={styles.todoScreen}>
+        <Text >{selectedTask.text}</Text>
+        <View style={styles.deleteButton}>
+          <TouchableOpacity onPress={() => {
+            let itemsCopy = [...taskItems];
+            itemsCopy.splice(selectedTask.index, 1);
+            setTaskItems(itemsCopy);
+            setSelectedTask(null);
+            navigation.goBack();
+          }}>Delete</TouchableOpacity>
         </View>
-      </View>
-        
-      </ScrollView>
 
-      <KeyboardAvoidingView 
-       
-        style={styles.writeTaskWrapper}
-      >
-        <TextInput style={styles.input} placeholder={'Plan Your Day'} value={task} onChangeText={text => setTask(text)} />
-        <TouchableOpacity onPress={() => handleAddTask()}>
-          <View style={styles.addWrapper}>
-            <Text style={styles.addText}>+</Text>
+      </View>
+    );
+  };
+  const MainScreen = ({ navigation, route }) => {
+    return (
+      <View style={styles.container}>
+
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1
+          }}
+          keyboardShouldPersistTaps='handled'
+        >
+
+
+          <View style={styles.tasksWrapper}>
+            <Text style={styles.sectionTitle}>ToDo List</Text>
+            <View style={styles.items}>
+
+              {
+                taskItems.map((item, index) => {
+                  return (
+                    <TouchableOpacity key={index} onPress={() => completeTask(index, navigation)}>
+                      <Task text={item} />
+                    </TouchableOpacity>
+                  )
+                })
+              }
+            </View>
           </View>
-        </TouchableOpacity>
-      </KeyboardAvoidingView>
-      
-    </View>
+
+        </ScrollView>
+
+        <KeyboardAvoidingView
+
+          style={styles.writeTaskWrapper}
+        >
+          <TextInput style={styles.input} placeholder={'Plan Your Day'} value={task} onChangeText={text => setTask(text)} />
+          <TouchableOpacity onPress={() => handleAddTask()}>
+            <View style={styles.addWrapper}>
+              <Text style={styles.addText}>+</Text>
+            </View>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
+
+      </View>
+    );
+  };
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Main"
+          component={MainScreen}
+          options={{ title: '' }}
+        />
+        <Stack.Screen options={{ title: '' }} name="Todo" component={TodoScreen} />
+      </Stack.Navigator>
+
+    </NavigationContainer>
   );
 }
 
@@ -107,4 +150,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   addText: {},
+  todoScreen: {
+    padding: 20
+  },
+  deleteButton: {
+    width: 60,
+    padding: 10,
+    backgroundColor: 'red',
+    color: '#fff',
+    borderRadius: 20
+  }
 });
