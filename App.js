@@ -30,7 +30,7 @@ export default function App() {
 
      
       <View style={styles.tasksWrapper}>
-        <Text style={styles.sectionTitle}>To Do List</Text>
+        <Text style={styles.sectionTitle}>ToDo List</Text>
         <View style={styles.items}>
         
           {
